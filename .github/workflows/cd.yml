@@ -1,6 +1,6 @@
 # GitHub Actions Continuous Deployment Workflow
 # AI智能资讯聚合系统 - 老王出品
-# 触发: 推送到 main 分支
+# 优化版：并行构建 + 单平台 + 快速缓存
 
 name: Continuous Deployment
 
@@ -10,72 +10,27 @@ on:
       - main
       - master
   workflow_dispatch:  # 允许手动触发
+  workflow_call:  # 允许其他 workflow 调用
 
 env:
-  # Docker 镜像名称，请替换为你的 Docker Hub 用户名
   BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/auto-info-backend
   FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/auto-info-frontend
 
 jobs:
-  # ========== Job 1: 后端测试 ==========
-  test-backend:
-    name: Test Backend
+  # ========== Job: 并行构建前后端镜像 ==========
+  build:
+    name: Build Images
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install dependencies
-        working-directory: ./backend
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run tests
-        working-directory: ./backend
-        run: pytest
-
-  # ========== Job 2: 前端测试 ==========
-  test-frontend:
-    name: Test Frontend
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: ./frontend
-        run: npm ci
-
-      - name: Build frontend
-        working-directory: ./frontend
-        run: npm run build
-
-  # ========== Job 3: 构建并推送 Docker 镜像 ==========
-  docker-build-push:
-    name: Build & Push Docker Images
-    runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
 
     permissions:
       contents: read
       packages: write
 
+    # 并行构建两个镜像
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -83,49 +38,49 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ matrix.service }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ matrix.service }}-
+            ${{ runner.os }}-buildx-
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 构建并推送后端镜像
-      - name: Build and push backend image
+      # 根据 matrix.service 动态设置构建上下文
+      - name: Build and push ${{ matrix.service }} image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: ./${{ matrix.service }}
           push: true
           tags: |
-            ${{ env.BACKEND_IMAGE }}:latest
-            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/auto-info-${{ matrix.service }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/auto-info-${{ matrix.service }}:${{ github.sha }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache
-          cache-to: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache,mode=max
-          platforms: linux/amd64,linux/arm64
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          # 只构建 amd64，去掉 arm64 可提速 50%+
+          platforms: linux/amd64
 
-      # 构建并推送前端镜像
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: |
-            ${{ env.FRONTEND_IMAGE }}:latest
-            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache
-          cache-to: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
-          platforms: linux/amd64,linux/arm64
+      # 移动缓存（workaround for cache action）
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache || true
 
-  # ========== Job 4: 部署到服务器 ==========
+  # ========== Job: 部署 ==========
   deploy:
-    name: Deploy to Server
+    name: Deploy
     runs-on: ubuntu-latest
-    needs: docker-build-push
+    needs: build
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
