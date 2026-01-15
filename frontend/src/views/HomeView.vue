@@ -1,4 +1,4 @@
-<!-- HomeView.vue - 首页 -->
+<!-- HomeView.vue - 首页（极客风） -->
 <template>
   <div class="home-view">
     <div class="container">
@@ -10,9 +10,13 @@
 
       <!-- 最新文章标题 -->
       <div class="section-header">
-        <h2>最新文章</h2>
+        <div class="header-left">
+          <span class="header-icon">◈</span>
+          <h2>最新文章</h2>
+        </div>
         <router-link to="/articles" class="view-all">
-          查看全部 →
+          <span class="view-text">查看全部</span>
+          <span class="view-arrow">→</span>
         </router-link>
       </div>
 
@@ -26,6 +30,7 @@
           @click="loadMore"
           :disabled="loadingMore"
         >
+          <span v-if="loadingMore" class="loading-spinner"></span>
           {{ loadingMore ? '加载中...' : '加载更多' }}
         </button>
       </div>
@@ -98,38 +103,115 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .home-view {
-  padding: var(--spacing-lg) 0 var(--spacing-xl);
+  padding: var(--spacing-xl) 0 var(--spacing-2xl);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
 
-  h2 {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0;
-  }
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.header-icon {
+  font-size: 24px;
+  color: var(--accent-cyan);
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .view-all {
-  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 8px 16px;
+  color: var(--text-secondary);
   font-size: 14px;
-  transition: opacity 0.2s;
+  text-decoration: none;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition: all 0.3s;
 
   &:hover {
-    opacity: 0.8;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    box-shadow: 0 0 15px var(--primary-glow);
   }
+}
+
+.view-text {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.view-arrow {
+  transition: transform 0.3s;
+}
+
+.view-all:hover .view-arrow {
+  transform: translateX(4px);
 }
 
 .load-more {
   text-align: center;
-  margin-top: var(--spacing-xl);
+  margin-top: var(--spacing-2xl);
 
   .btn {
-    min-width: 120px;
+    min-width: 140px;
+    padding: 12px 32px;
+  }
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .home-view {
+    padding: var(--spacing-lg) 0 var(--spacing-xl);
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .view-all {
+    align-self: flex-end;
+  }
+
+  .header-icon {
+    font-size: 20px;
+  }
+
+  h2 {
+    font-size: 20px;
   }
 }
 </style>

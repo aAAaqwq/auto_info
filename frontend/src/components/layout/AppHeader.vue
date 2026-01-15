@@ -1,32 +1,35 @@
-<!-- AppHeader.vue - 顶部导航栏组件（架构版） -->
+<!-- AppHeader.vue - 顶部导航栏组件（极客风） -->
 <template>
   <header class="app-header">
     <div class="container header-inner">
-      <!-- Logo -->
       <router-link to="/" class="logo">
-        <span class="logo-text">Auto Info</span>
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span class="logo-text gradient-text">Auto Info</span>
       </router-link>
 
-      <!-- 桌面导航 -->
       <nav class="nav-desktop">
-        <router-link to="/" class="nav-item">首页</router-link>
-        <router-link to="/articles" class="nav-item">文章库</router-link>
-        <router-link v-for="cat in categories" :key="cat.slug" :to="`/category/${cat.slug}`" class="nav-item">
-          {{ cat.name }}
+        <router-link to="/" class="nav-item">
+          <span class="nav-icon">⌂</span>
+          <span class="nav-text">首页</span>
         </router-link>
-        <router-link to="/about" class="nav-item">关于</router-link>
+        <router-link to="/articles" class="nav-item">
+          <span class="nav-icon">◈</span>
+          <span class="nav-text">文章库</span>
+        </router-link>
+        <router-link v-for="cat in categories" :key="cat.slug" :to="`/category/${cat.slug}`" class="nav-item">
+          <span class="nav-icon">◇</span>
+          <span class="nav-text">{{ cat.name }}</span>
+        </router-link>
+        <router-link to="/about" class="nav-item">
+          <span class="nav-icon">⍰</span>
+          <span class="nav-text">关于</span>
+        </router-link>
       </nav>
 
-      <!-- 右侧操作区 -->
       <div class="header-actions">
-        <!-- 即时搜索 -->
         <InstantSearch />
-
-        <!-- 移动端菜单按钮 -->
         <button class="menu-btn mobile-only" @click="toggleSidebar">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M3 12h18M3 6h18M3 18h18"/>
-          </svg>
+          <span class="hamburger"></span>
         </button>
       </div>
     </div>
@@ -41,8 +44,6 @@ import InstantSearch from '@/components/shared/InstantSearch.vue'
 const appStore = useAppStore()
 const { categories } = storeToRefs(appStore)
 
-
-
 const toggleSidebar = () => {
   appStore.toggleSidebar()
 }
@@ -54,62 +55,155 @@ const toggleSidebar = () => {
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-light);
+  height: 70px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color);
   z-index: 100;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--primary-color), var(--accent-purple), transparent);
+  }
 }
 
 .header-inner {
   height: 100%;
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: 24px;
 }
 
 .logo {
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  transition: all 0.3s;
+
+  &:hover {
+    background: var(--bg-secondary);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+  }
+}
+
+.logo-icon {
+  font-size: 18px;
+  color: var(--accent-cyan);
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+.logo-text {
+  font-size: 22px;
   font-weight: 700;
-  color: var(--primary-color);
+  letter-spacing: -0.5px;
 }
 
 .nav-desktop {
   display: flex;
-  gap: var(--spacing-md);
+  gap: 4px;
   flex: 1;
 }
 
 .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: var(--text-secondary);
   font-size: 14px;
-  padding: 4px 0;
+  padding: 10px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.3s;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    transition: all 0.3s;
+    transform: translateX(-50%);
+  }
+
+  &:hover {
+    color: var(--primary-color);
+    background: var(--bg-secondary);
+
+    &::before {
+      width: 80%;
+    }
+  }
 
   &.router-link-active {
-    color: var(--primary-color);
+    color: var(--accent-cyan);
+
+    &::before {
+      width: 80%;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+    }
   }
+}
+
+.nav-icon {
+  font-size: 12px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.nav-item:hover .nav-icon {
+  opacity: 1;
 }
 
 .header-actions {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: 8px;
   align-items: center;
 }
 
 .menu-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
   background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  transition: all 0.3s;
 
   &:hover {
+    border-color: var(--primary-color);
     background: var(--bg-secondary);
-    color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+  }
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 20px;
+
+  &::before,
+  &::after {
+    content: '';
+    width: 100%;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: all 0.3s;
   }
 }
 
@@ -121,7 +215,6 @@ const toggleSidebar = () => {
   .nav-desktop {
     display: none;
   }
-
   .mobile-only {
     display: flex;
   }

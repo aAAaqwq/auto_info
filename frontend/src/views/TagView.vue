@@ -1,24 +1,35 @@
-<!-- TagView.vue - 标签页 -->
+<!-- TagView.vue - 标签页（极客风） -->
 <template>
   <div class="tag-view">
     <div class="container">
       <header class="page-header">
-        <div class="tag-icon">#</div>
-        <h1 class="page-title">{{ tag?.name || tagName }}</h1>
-        <p class="page-subtitle">包含该标签的所有文章</p>
+        <div class="tag-badge">
+          <span class="badge-hash">#</span>
+          <span class="badge-name">{{ tag?.name || tagName }}</span>
+        </div>
+        <p class="page-subtitle">// 包含该标签的所有文章</p>
       </header>
 
       <ArticleGrid :articles="articles" :loading="loading" />
 
       <div class="pagination" v-if="totalPages > 1">
-        <button class="page-btn" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">上一页</button>
+        <button class="page-btn" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+          <span class="btn-icon">◀</span>
+          <span class="btn-text">上一页</span>
+        </button>
         <div class="page-numbers">
           <button v-for="page in visiblePages" :key="page" class="page-num" :class="{ active: page === currentPage }" @click="goToPage(page)">{{ page }}</button>
         </div>
-        <button class="page-btn" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">下一页</button>
+        <button class="page-btn" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">
+          <span class="btn-text">下一页</span>
+          <span class="btn-icon">▶</span>
+        </button>
       </div>
 
-      <div class="list-stats" v-if="!loading && total > 0">共 {{ total }} 篇文章</div>
+      <div class="list-stats" v-if="!loading && total > 0">
+        <span class="stats-icon">◆</span>
+        共 {{ total }} 篇文章
+      </div>
     </div>
   </div>
 </template>
@@ -94,14 +105,163 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.tag-view { padding: var(--spacing-lg) 0 var(--spacing-xl); min-height: 60vh; }
-.page-header { text-align: center; margin-bottom: var(--spacing-xl); }
-.tag-icon { font-size: 48px; font-weight: 700; color: var(--primary-color); line-height: 1; margin-bottom: var(--spacing-sm); }
-.page-title { font-size: 32px; font-weight: 700; color: var(--text-primary); margin: 0 0 var(--spacing-sm) 0; @media (max-width: 768px) { font-size: 24px; } }
-.page-subtitle { font-size: 16px; color: var(--text-secondary); margin: 0; }
-.pagination { display: flex; align-items: center; justify-content: center; gap: var(--spacing-sm); margin-top: var(--spacing-xl); flex-wrap: wrap; }
-.page-btn { padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); cursor: pointer; transition: all 0.2s;&:hover:not(:disabled) { border-color: var(--primary-color); color: var(--primary-color); }&:disabled { opacity: 0.5; cursor: not-allowed; } }
-.page-numbers { display: flex; gap: 4px; }
-.page-num { min-width: 36px; height: 36px; padding: 0 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;&:hover { border-color: var(--primary-color); color: var(--primary-color); }&.active { background: var(--primary-color); border-color: var(--primary-color); color: white; } }
-.list-stats { text-align: center; margin-top: var(--spacing-lg); color: var(--text-tertiary); font-size: 14px; }
+.tag-view {
+  padding: var(--spacing-xl) 0 var(--spacing-2xl);
+  min-height: 60vh;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+  border-radius: var(--radius-full);
+  margin-bottom: var(--spacing-md);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+}
+
+.badge-hash {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+}
+
+.badge-name {
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-2xl);
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.btn-icon {
+  font-size: 10px;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 6px;
+}
+
+.page-num {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+
+  &:hover {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+  }
+
+  &.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-purple));
+    border-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 0 15px var(--primary-glow);
+  }
+}
+
+.list-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.stats-icon {
+  color: var(--accent-purple);
+  font-size: 10px;
+}
+
+@media (max-width: 768px) {
+  .tag-view {
+    padding: var(--spacing-lg) 0 var(--spacing-xl);
+  }
+
+  .tag-badge {
+    padding: 10px 20px;
+  }
+
+  .badge-hash {
+    font-size: 24px;
+  }
+
+  .badge-name {
+    font-size: 20px;
+  }
+
+  .page-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .page-num {
+    min-width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+}
 </style>

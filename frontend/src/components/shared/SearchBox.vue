@@ -1,6 +1,7 @@
-<!-- SearchBox.vue - 可复用搜索框组件 -->
+<!-- SearchBox.vue - 可复用搜索框组件（极客风） -->
 <template>
   <div class="search-box">
+    <span class="search-prefix">⚡</span>
     <input
       ref="inputRef"
       v-model="searchQuery"
@@ -10,15 +11,8 @@
       @keydown.enter="handleSearch"
     />
     <button class="search-btn" @click="handleSearch" :disabled="!searchQuery.trim()">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path
-          d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+      <span class="btn-text">搜索</span>
+      <span class="btn-arrow">→</span>
     </button>
   </div>
 </template>
@@ -46,14 +40,12 @@ const emit = defineEmits(['update:modelValue', 'search'])
 const searchQuery = ref(props.modelValue)
 const inputRef = ref(null)
 
-// 自动聚焦
 if (props.autofocus) {
   setTimeout(() => {
     inputRef.value?.focus()
   }, 100)
 }
 
-// 同步v-model
 watch(() => props.modelValue, (newVal) => {
   searchQuery.value = newVal
 })
@@ -69,7 +61,6 @@ const handleSearch = () => {
   }
 }
 
-// 暴露方法供父组件调用
 defineExpose({
   focus: () => inputRef.value?.focus(),
   clear: () => { searchQuery.value = '' }
@@ -81,24 +72,56 @@ defineExpose({
   display: flex;
   align-items: center;
   background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 4px;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+
+  // 顶部渐变线
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      var(--accent-cyan),
+      var(--primary-color),
+      transparent
+    );
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
 
   &:focus-within {
-    background: var(--bg-primary);
-    box-shadow: 0 0 0 2px var(--primary-color);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+
+    &::before {
+      opacity: 1;
+    }
   }
+}
+
+.search-prefix {
+  font-size: 18px;
+  padding: 0 8px 0 12px;
+  opacity: 0.6;
 }
 
 .search-input {
   flex: 1;
-  padding: 10px 16px;
+  padding: 12px 8px;
   background: transparent;
   border: none;
   outline: none;
   font-size: 15px;
   color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
   min-width: 0;
 
   &::placeholder {
@@ -107,24 +130,35 @@ defineExpose({
 }
 
 .search-btn {
-  padding: 8px 16px;
-  background: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--primary-color));
   border: none;
   border-radius: var(--radius-md);
   color: white;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.3s;
 
   &:hover:not(:disabled) {
-    background: var(--primary-hover);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+    transform: translateX(2px);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
+}
+
+.btn-text {
+  font-weight: 500;
+}
+
+.btn-arrow {
+  font-size: 12px;
 }
 </style>
