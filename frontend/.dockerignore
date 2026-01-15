@@ -1,4 +1,4 @@
-﻿# Git
+# Git
 .git
 .gitignore
 .gitattributes
@@ -49,4 +49,3 @@ __tests__/
 .editorconfig
 postcss.config.js
 tailwind.config.js
-vite.config.js
