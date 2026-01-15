@@ -62,7 +62,7 @@ const goToPage = (page) => {
 }
 
 onMounted(loadArticles)
-<\/script>
+</script>
 
 <style lang="scss" scoped>
 .article-list-view { padding: var(--spacing-lg) 0 var(--spacing-xl); min-height: 60vh; }
