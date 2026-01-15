@@ -43,6 +43,10 @@
         <button class="action-btn" @click="shareArticle">
           分享文章
         </button>
+        <button class="action-btn delete-btn" @click="confirmDelete" :disabled="deleting">
+          删除文章
+        </button>
+        <span v-if="deleting" class="deleting-text">删除中...</span>
       </div>
     </div>
 
@@ -110,6 +114,28 @@ const loadArticle = async () => {
     console.error('Failed to load article:', err)
   } finally {
     loading.value = false
+  }
+}
+
+const deleting = ref(false)
+
+const confirmDelete = () => {
+  if (confirm("确定要删除这篇文章吗？此操作不可恢复！")) {
+    deleteArticle()
+  }
+}
+
+const deleteArticle = async () => {
+  if (deleting.value) return
+  deleting.value = true
+  try {
+    await articleStore.deleteArticle(article.value.id)
+    alert("文章删除成功！")
+    router.push("/")
+  } catch (err) {
+    alert("删除失败：" + (err.message || "未知错误"))
+  } finally {
+    deleting.value = false
   }
 }
 
@@ -261,10 +287,29 @@ onMounted(() => {
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s;
+  position: relative;
 
   &:hover {
     background: var(--primary-hover);
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.delete-btn {
+  background: #e53e3e;
+
+  &:hover {
+    background: #c53030;
+  }
+}
+
+.deleting-text {
+  margin-left: 8px;
+  font-size: 12px;
 }
 
 .loading {

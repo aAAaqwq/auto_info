@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# 环境变量
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 测试
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 数据库（本地开发用）
+*.db
+*.db-journal
+
+# 文档
+README.md
+docs/
+
+# Git
+.git/
+.gitignore

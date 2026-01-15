@@ -75,13 +75,13 @@ export const useArticleStore = defineStore('article', {
       }
     },
 
-    // 创建文章
-    async createArticle(data) {
+    // 删除文章
+    async deleteArticle(id) {
       this.loading = true
       this.error = null
       try {
-        const res = await articleApi.create(data)
-        return res.data
+        const res = await articleApi.delete(id)
+        return res
       } catch (err) {
         this.error = err.message
         throw err
@@ -90,7 +90,6 @@ export const useArticleStore = defineStore('article', {
       }
     },
 
-    // 重置状态
     reset() {
       this.articles = []
       this.currentArticle = null
