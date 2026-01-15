@@ -32,7 +32,7 @@ export default defineConfig({
   },
   // 优化依赖预构建
   optimizeDeps: {
-    exclude: ['@vueup/vue-quill']
+    include: ['@vueup/vue-quill']
   },
   // 构建优化
   build: {

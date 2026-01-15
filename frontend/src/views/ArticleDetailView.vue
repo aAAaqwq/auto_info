@@ -36,15 +36,7 @@
       </header>
 
       <!-- 文章内容 - Quill只读渲染 -->
-      <div class="article-content">
-        <QuillReader
-          :content="article.content"
-          :read-only="true"
-          theme="snow"
-          :modules="[]"
-          class="quill-reader"
-        />
-      </div>
+      <div class="article-content" v-html="article.content"></div>
 
       <!-- 分享按钮 -->
       <div class="article-actions">
@@ -72,8 +64,6 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useArticleStore } from '@/stores/article'
-import { QuillReader } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import DOMPurify from 'dompurify'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -222,81 +212,35 @@ onMounted(() => {
 .article-content {
   max-width: 800px;
   margin: 0 auto;
-}
-
-.quill-reader {
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.8;
+  color: #333;
 
-  :deep(.ql-editor) {
-    padding: 0;
-    min-height: auto;
-    color: var(--text-primary);
-  }
-
-  :deep(h2) {
-    font-size: 24px;
-    font-weight: 600;
-    margin-top: var(--spacing-xl);
-    margin-bottom: var(--spacing-md);
-    color: var(--text-primary);
-  }
-
-  :deep(p) {
-    margin-bottom: var(--spacing-md);
-  }
-
-  :deep(img) {
-    max-width: 100%;
-    height: auto;
-    border-radius: var(--radius-md);
-    margin: var(--spacing-md) 0;
-    display: block;
-  }
-
-  :deep(iframe) {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border: none;
-    border-radius: var(--radius-md);
-    margin: var(--spacing-md) 0;
-    background: #000;
-  }
-
-  // 代码块样式
-  :deep(pre) {
-    background: var(--bg-secondary);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-sm);
-    overflow-x: auto;
-    margin: var(--spacing-md) 0;
-  }
-
-  :deep(code) {
-    background: var(--bg-secondary);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 14px;
-  }
-
-  // 引用样式
-  :deep(blockquote) {
-    border-left: 4px solid var(--primary-color);
-    padding-left: var(--spacing-md);
-    margin: var(--spacing-md) 0;
-    color: var(--text-secondary);
-  }
-
-  // 链接样式
-  :deep(a) {
-    color: var(--primary-color);
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+  :deep(h1) { font-size: 28px; font-weight: 700; margin: 40px 0 20px; color: #1a1a1a; }
+  :deep(h2) { font-size: 24px; font-weight: 600; margin: 36px 0 16px; color: #1a1a1a; }
+  :deep(h3) { font-size: 20px; font-weight: 600; margin: 28px 0 12px; color: #333; }
+  :deep(h4) { font-size: 18px; font-weight: 600; margin: 24px 0 12px; color: #333; }
+  :deep(p) { margin-bottom: 16px; }
+  :deep(img) { max-width: 100%; height: auto; margin: 24px auto; display: block; border-radius: 8px; }
+  :deep(video) { max-width: 100%; height: auto; margin: 24px auto; display: block; border-radius: 8px; }
+  :deep(iframe) { width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px; margin: 24px 0; background: #000; }
+  :deep(pre) { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 16px 0; font-size: 14px; line-height: 1.6; }
+  :deep(code) { background: #f6f8fa; padding: 2px 6px; border-radius: 4px; font-size: 14px; font-family: Consolas, Monaco, Courier New, monospace; }
+  :deep(pre code) { background: transparent; padding: 0; }
+  :deep(blockquote) { border-left: 4px solid var(--primary-color); padding: 12px 20px; margin: 20px 0; color: #666; background: #f9f9f9; border-radius: 0 4px 4px 0; }
+  :deep(a) { color: var(--primary-color); text-decoration: none; border-bottom: 1px solid transparent; &:hover { border-bottom-color: var(--primary-color); } }
+  :deep(ul), :deep(ol) { margin: 16px 0; padding-left: 24px; }
+  :deep(li) { margin-bottom: 8px; }
+  :deep(table) { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 15px; }
+  :deep(th) { background: #f6f8fa; padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e1e4e8; }
+  :deep(td) { padding: 12px; border-bottom: 1px solid #e1e4e8; }
+  :deep(tr:last-child td) { border-bottom: none; }
+  :deep(hr) { border: none; border-top: 1px solid #e1e4e8; margin: 32px 0; }
+  :deep(strong) { font-weight: 600; color: #1a1a1a; }
+  :deep(em) { font-style: italic; }
 }
+
+
 
 .article-actions {
   max-width: 800px;
