@@ -1,0 +1,248 @@
+{
+  "name": "auto_info",
+  "description": "自动化信息处理",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "id": "5dad2c44-19ed-4fdc-b705-23eabcb71754",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\"id\": 8, \"title\": \"前小鹏高管创业\", \"summary\": \"CES 2026机器人展台火爆\", \"source\": \"36氪\", \"status\": \"approved\"}"
+      },
+      "id": "92e44baf-c116-4f4c-bc53-a0ca402816df",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {json: {prompt: `脚本生成：标题=${$json.title} 摘要=${$json.summary}`, article: $json}};"
+      },
+      "id": "code-prompt-001",
+      "name": "准备Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\"model\":\"claude-3-5-sonnet-20241022\",\"max_tokens\":4000,\"messages\":[{\"role\":\"user\",\"content\":\"{{ $json.prompt }} 生成30-60秒视频脚本，4-5场景，含narration/subtitle/image_prompt/video_motion/duration，JSON输出\"}]}"
+      },
+      "id": "http-llm-001",
+      "name": "LLM生成脚本",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c=$json.choices?.[0]?.message?.content||$json.content?.[0]?.text||''; let s=c.match(/```json\\s*([\\s\\S]*?)```/)?.[1]||c; s=s.substring(s.indexOf({),s.lastIndexOf(})+1); const d=JSON.parse(s); return d.scenes.map((x,i)=>({json:{...x,idx:i,audio:d.audio}}));"
+      },
+      "id": "code-parse-001",
+      "name": "解析脚本",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict",
+        "authentication": "none",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\"instances\":[{\"prompt\":\"{{ $json.image_prompt }}\"}],\"parameters\":{\"sampleCount\":1,\"aspectRatio\":\"16:9\"}}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "http-img-001",
+      "name": "生成图片",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/videos/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\"model\":\"sora-2\",\"image\":\"{{ $json.predictions[0].bytesBase64Encoded }}\",\"duration\":{{ $json.duration }}||5,\"aspect_ratio\":\"16:9\"}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "http-sora-001",
+      "name": "Sora图生视频",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1700,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/audio/speech",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\"model\":\"tts-1-hd\",\"input\":\"{{ $json.narration }}\",\"voice\":\"onyx\"}"
+      },
+      "id": "http-tts-001",
+      "name": "生成旁白",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "command": "ffmpeg -f concat -safe 0 -i <(for f in video_*.mp4; do echo \"file '$PWD/$f'\"; done) -c copy output_{{ $now.format('x') }}.mp4",
+        "options": {}
+      },
+      "id": "cmd-ffmpeg-001",
+      "name": "合成视频",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2300,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "准备Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "准备Prompt": {
+      "main": [
+        [
+          {
+            "node": "LLM生成脚本",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM生成脚本": {
+      "main": [
+        [
+          {
+            "node": "解析脚本",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "解析脚本": {
+      "main": [
+        [
+          {
+            "node": "生成图片",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "生成图片": {
+      "main": [
+        [
+          {
+            "node": "Sora图生视频",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sora图生视频": {
+      "main": [
+        [
+          {
+            "node": "生成旁白",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "生成旁白": {
+      "main": [
+        [
+          {
+            "node": "合成视频",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

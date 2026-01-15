@@ -1,0 +1,205 @@
+{
+  "name": "资讯转视频自动化",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger-001",
+      "name": "定时触发",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"id\": 8,\n  \"title\": \"前小鹏高管创业，给美国家庭造了台户外陪伴机器人\",\n  \"original_url\": \"https://36kr.com/p/3638686789454983?f=rss\",\n  \"source\": \"36氪\",\n  \"category\": \"其他\",\n  \"tags\": [],\n  \"summary\": \"文｜邱晓芬 编辑｜苏建勋 CES 2026上，一家中国机器人公司的展台外挤满了人。大家围观的，不是CES上司空见惯的人形机器人或四足狗，而是一台双轮足、身躯四四方方、带有显示屏的机器人——只有15公斤重，40厘米高。它在草皮上时不时抱着皮球行进，稳稳穿越不同状态的地面。看到有观众拍摄它时，它会停下来与人互动，左右轻轻摇晃，并在屏幕上切换不同表情。\",\n  \"quality_score\": 85,\n  \"status\": \"approved\"\n}",
+        "options": {}
+      },
+      "id": "test-data-001",
+      "name": "测试数据",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 脚本生成Prompt\nconst SCRIPT_PROMPT = `你是一位专业的短视频脚本专家。根据以下资讯生成一个30-60秒的视频脚本。\n\n## 输入资讯\n标题：${$json.title}\n摘要：${$json.summary}\n来源：${$json.source}\n\n## 要求\n1. 场景数量：4-5个\n2. 总时长：30-60秒\n3. 风格：科技感、快节奏、资讯解说\n\n## 每个场景必须包含\n- narration: 旁白文案（口语化）\n- subtitle: 屏幕字幕（15字以内）\n- image_prompt: 英文图片生成提示词（详细描述+光影+构图+风格+photorealistic+8K）\n- video_motion: 运镜效果描述\n- duration: 本场景时长（秒）\n\n## 音频配置\n- bgm_style: 背景音乐风格\n- voice: 旁白音色\n\n直接输出JSON，无其他内容：`;\n\nreturn {\n  json: {\n    prompt: SCRIPT_PROMPT,\n    article: $input.item.json\n  }\n};"
+      },
+      "id": "code-prompt-001",
+      "name": "准备Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "model": "claude-3-5-sonnet-20241022",
+        "messages": {
+          "values": [
+            {
+              "role": "user",
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 4000
+        }
+      },
+      "id": "claude-llm-001",
+      "name": "LLM生成脚本",
+      "type": "n8n-nodes-base.anthropic",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "credentials": {
+        "anthropicApi": {
+          "id": "请配置Claude API凭证",
+          "name": "Claude API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 解析LLM返回的JSON脚本\nconst content = $input.item.json.content[0].text;\nlet jsonStr = content;\n\n// 处理可能存在的markdown代码块\nconst codeBlockMatch = content.match(/```(?:json)?\\s*([\\s\\S]*?)```/);\nif (codeBlockMatch) {\n  jsonStr = codeBlockMatch[1];\n} else {\n  const start = content.indexOf('{');\n  const end = content.lastIndexOf('}');\n  if (start !== -1 && end !== -1) {\n    jsonStr = content.substring(start, end + 1);\n  }\n}\n\ntry {\n  const script = JSON.parse(jsonStr);\n  // 拆分成多个场景，每个场景单独处理\n  return script.scenes.map((scene, index) => ({\n    json: {\n      ...scene,\n      scene_index: index,\n      total_scenes: script.scenes.length,\n      audio_config: script.audio,\n      meta: script.meta\n    }\n  }));\n} catch (e) {\n  throw new Error(`解析脚本失败: ${e.message}`);\n}"
+      },
+      "id": "code-parse-001",
+      "name": "解析脚本并拆分场景",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key={{ $env.GOOGLE_API_KEY }}",
+        "authentication": "none",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"instances\": [\n    {\n      \"prompt\": \"{{ $json.image_prompt }}\"\n    }\n  ],\n  \"parameters\": {\n    \"sampleCount\": 1,\n    \"aspectRatio\": \"16:9\",\n    \"safetyFilterLevel\": \"block_some\"\n  }\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "http-image-001",
+      "name": "生成场景图片",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.openai.com/v1/videos/generations",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"model\": \"sora-2\",\n  \"image\": \"{{ $json.predictions[0].bytesBase64Encoded }}\",\n  \"duration\": {{ $json.duration }} || 5,\n  \"motion\": \"{{ $json.video_motion }}\" || \"subtle\",\n  \"aspect_ratio\": \"16:9\"\n}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "http-sora-001",
+      "name": "Sora图生视频",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "请配置OpenAI API凭证",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.openai.com/v1/audio/speech",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"model\": \"tts-1-hd\",\n  \"input\": \"{{ $json.narration }}\",\n  \"voice\": \"onyx\",\n  \"speed\": 1.0\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "mp3"
+            }
+          }
+        }
+      },
+      "id": "http-tts-001",
+      "name": "生成旁白音频",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 收集所有场景的视频和音频，准备合成\nconst items = $input.all();\nconst scenes = items.map(item => ({\n  scene_index: item.json.scene_index,\n  video_url: item.json.video_url,\n  audio_url: item.json.audio_url,\n  subtitle: item.json.subtitle,\n  duration: item.json.duration\n})).sort((a, b) => a.scene_index - b.scene_index);\n\nreturn [{\n  json: {\n    scenes: scenes,\n    total_duration: scenes.reduce((sum, s) => sum + s.duration, 0),\n    scene_count: scenes.length\n  }\n}];"
+      },
+      "id": "code-merge-001",
+      "name": "合并所有场景",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -i \"{{ $json.scenes[0].video_url }}\" -i \"{{ $json.scenes[0].audio_url }}\" -vf \"subtitles=subtitle.srt\" -shortest -c:v libx264 -c:a aac \"output_{{ $now.format('x') }}.mp4\"",
+        "options": {}
+      },
+      "id": "cmd-ffmpeg-001",
+      "name": "FFmpeg合成视频",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [2220, 300]
+    }
+  ],
+  "connections": {
+    "定时触发": {
+      "main": [[{"node": "测试数据", "type": "main", "index": 0}]]
+    },
+    "测试数据": {
+      "main": [[{"node": "准备Prompt", "type": "main", "index": 0}]]
+    },
+    "准备Prompt": {
+      "main": [[{"node": "LLM生成脚本", "type": "main", "index": 0}]]
+    },
+    "LLM生成脚本": {
+      "main": [[{"node": "解析脚本并拆分场景", "type": "main", "index": 0}]]
+    },
+    "解析脚本并拆分场景": {
+      "main": [[{"node": "生成场景图片", "type": "main", "index": 0}]]
+    },
+    "生成场景图片": {
+      "main": [[{"node": "Sora图生视频", "type": "main", "index": 0}]]
+    },
+    "Sora图生视频": {
+      "main": [[{"node": "生成旁白音频", "type": "main", "index": 0}]]
+    },
+    "生成旁白音频": {
+      "main": [[{"node": "合并所有场景", "type": "main", "index": 0}]]
+    },
+    "合并所有场景": {
+      "main": [[{"node": "FFmpeg合成视频", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-14T00:00:00.000Z",
+  "versionId": "1"
+}
