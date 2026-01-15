@@ -90,6 +90,28 @@ export const useArticleStore = defineStore('article', {
       }
     },
 
+    // 即时搜索文章
+    async instantSearch(query, limit = 5) {
+      try {
+        const res = await articleApi.instantSearch(query, limit)
+        return res.data.items || []
+      } catch (err) {
+        console.error('Search failed:', err)
+        return []
+      }
+    },
+
+    // 获取相关推荐文章
+    async fetchRelated(articleId) {
+      try {
+        const res = await articleApi.getRelated(articleId)
+        return res.data || { by_tag: [], by_category: [] }
+      } catch (err) {
+        console.error('Fetch related failed:', err)
+        return { by_tag: [], by_category: [] }
+      }
+    },
+
     reset() {
       this.articles = []
       this.currentArticle = null

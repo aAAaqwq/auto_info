@@ -19,13 +19,8 @@
 
       <!-- 右侧操作区 -->
       <div class="header-actions">
-        <!-- 搜索按钮 -->
-        <button class="search-btn" @click="openSearch">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="M21 21l-4.35-4.35"/>
-          </svg>
-        </button>
+        <!-- 即时搜索 -->
+        <InstantSearch />
 
         <!-- 移动端菜单按钮 -->
         <button class="menu-btn mobile-only" @click="toggleSidebar">
@@ -41,13 +36,12 @@
 <script setup>
 import { useAppStore } from '@/stores/app'
 import { storeToRefs } from 'pinia'
+import InstantSearch from '@/components/shared/InstantSearch.vue'
 
 const appStore = useAppStore()
 const { categories } = storeToRefs(appStore)
 
-const openSearch = () => {
-  // TODO: 打开搜索弹窗
-}
+
 
 const toggleSidebar = () => {
   appStore.toggleSidebar()
@@ -101,7 +95,7 @@ const toggleSidebar = () => {
   align-items: center;
 }
 
-.search-btn, .menu-btn {
+.menu-btn {
   width: 36px;
   height: 36px;
   border-radius: 50%;

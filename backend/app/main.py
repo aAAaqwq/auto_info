@@ -9,8 +9,11 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import re
+
+# 北京时间（UTC+8）
+CHINA_TZ = timezone(timedelta(hours=8))
 import uvicorn
 
 from .config import settings
@@ -21,11 +24,13 @@ from .schemas import (
     ArticleDetailSchema,
     ArticleCreateSchema,
     ArticleUpdateSchema,
+    ArticleSimpleSchema,
     CategorySchema,
     CategoryCreateSchema,
     TagSchema,
     ApiResponse,
     PaginatedResponse,
+    RelatedArticlesResponse,
 )
 
 
@@ -201,6 +206,113 @@ async def list_articles(
     )
 
 
+# 艹！重要：搜索API避免与动态路由冲突，使用独立路径
+@app.get("/api/search/articles", response_model=ApiResponse)
+async def search_articles_v2(
+    q: str,
+    limit: int = 5,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    即时搜索文章（用于前端搜索建议）
+
+    - **q**: 搜索关键词（标题）
+    - **limit**: 返回数量，默认5条
+    """
+    if not q or len(q.strip()) < 1:
+        return ApiResponse(code=0, message="success", data={"items": []})
+
+    keyword = f"%{q.strip()}%"
+    query = select(Article).where(
+        Article.status == "published",
+        Article.title.ilike(keyword),
+    ).order_by(desc(Article.views)).limit(limit)
+
+    result = await db.execute(query)
+    articles = result.scalars().all()
+
+    return ApiResponse(
+        code=0,
+        message="success",
+        data={
+            "items": [
+                {
+                    "id": a.id,
+                    "title": a.title,
+                    "slug": a.slug,
+                    "summary": a.summary,
+                }
+                for a in articles
+            ]
+        },
+    )
+
+
+@app.get("/api/articles/{article_id}/related", response_model=ApiResponse)
+async def get_related_articles(
+    article_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    获取相关推荐文章
+
+    - **article_id**: 文章ID
+    返回：
+    - by_tag: 同标签文章（最多6条）
+    - by_category: 同分类热门文章（最多6条）
+    """
+    article = await db.get(Article, article_id)
+    if not article:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    # 获取当前文章的标签ID和分类ID
+    tag_ids = [t.id for t in article.tags]
+    category_id = article.category_id
+
+    # 同标签文章
+    by_tag = []
+    if tag_ids:
+        tag_query = (
+            select(Article)
+            .join(Article.tags)
+            .where(
+                Article.status == "published",
+                Article.id != article_id,
+                Tag.id.in_(tag_ids),
+            )
+            .group_by(Article.id)
+            .order_by(desc(Article.published_at))
+            .limit(6)
+        )
+        tag_result = await db.execute(tag_query)
+        by_tag = tag_result.scalars().all()
+
+    # 同分类热门文章
+    by_category = []
+    if category_id:
+        cat_query = (
+            select(Article)
+            .where(
+                Article.status == "published",
+                Article.id != article_id,
+                Article.category_id == category_id,
+            )
+            .order_by(desc(Article.views), desc(Article.published_at))
+            .limit(6)
+        )
+        cat_result = await db.execute(cat_query)
+        by_category = cat_result.scalars().all()
+
+    return ApiResponse(
+        code=0,
+        message="success",
+        data={
+            "by_tag": [a.to_list_dict() for a in by_tag],
+            "by_category": [a.to_list_dict() for a in by_category],
+        },
+    )
+
+
 @app.get("/api/articles/{id_or_slug}", response_model=ApiResponse)
 async def get_article(id_or_slug: str, db: AsyncSession = Depends(get_db)):
     """获取文章详情"""
@@ -263,7 +375,7 @@ async def create_article(article_data: ArticleCreateSchema, db: AsyncSession = D
         author_avatar=article_data.author_avatar,
         is_original=article_data.is_original,
         status=article_data.status,
-        published_at=article_data.published_at or datetime.utcnow(),
+        published_at=article_data.published_at or datetime.now(CHINA_TZ),
     )
 
     # 设置关联
@@ -442,7 +554,7 @@ async def search_articles(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    搜索文章
+    搜索文章（旧接口，保留兼容）
 
     - **q**: 搜索关键词（标题或内容）
     - **page**: 页码
@@ -479,6 +591,48 @@ async def search_articles(
             "page_size": page_size,
             "total_pages": total_pages,
             "keyword": q,
+        },
+    )
+
+
+@app.get("/api/categories/{slug}/hot", response_model=ApiResponse)
+async def get_category_hot_articles(
+    slug: str,
+    limit: int = 5,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    获取分类热门文章
+
+    - **slug**: 分类slug
+    - **limit**: 返回数量，默认5条
+    """
+    # 查找分类
+    category_result = await db.execute(select(Category).where(Category.slug == slug))
+    category = category_result.scalar_one_or_none()
+    if not category:
+        raise HTTPException(status_code=404, detail="分类不存在")
+
+    # 获取该分类的热门文章（按浏览量排序）
+    query = (
+        select(Article)
+        .where(
+            Article.status == "published",
+            Article.category_id == category.id,
+        )
+        .order_by(desc(Article.views), desc(Article.published_at))
+        .limit(limit)
+    )
+
+    result = await db.execute(query)
+    articles = result.scalars().all()
+
+    return ApiResponse(
+        code=0,
+        message="success",
+        data={
+            "category": {"id": category.id, "name": category.name, "slug": category.slug},
+            "items": [a.to_list_dict() for a in articles],
         },
     )
 

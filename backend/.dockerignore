@@ -1,36 +1,55 @@
+﻿# Git
+.git
+.gitignore
+.gitattributes
+
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
+*.pyc
+*.pyo
+*.pyd
+.pip-cache/
 *.egg-info/
-dist/
-build/
+.eggs/
+.pytest_cache/
+.coverage
 
-# 环境变量
+# Node
+node_modules/
+dist/
+
+# 开发
+*.log
+*.local
 .env
-.env.local
+.env.*
+.envrc
+coverage/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# 测试
-.pytest_cache/
-.coverage
-htmlcov/
-
-# 数据库（本地开发用）
-*.db
-*.db-journal
+*~
+.DS_Store
 
 # 文档
 README.md
+CHANGELOG.md
+LICENSE
 docs/
+*.md
 
-# Git
-.git/
-.gitignore
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# 其他
+*.test.js
+*.spec.js
+__tests__/
+.eslintrc*
+.prettierrc*
+.editorconfig

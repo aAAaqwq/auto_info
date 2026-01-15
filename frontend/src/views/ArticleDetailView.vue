@@ -65,13 +65,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useArticleStore } from '@/stores/article'
 import DOMPurify from 'dompurify'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
+import ArticleRecommend from '@/components/article/ArticleRecommend.vue'
+import ShareDrawer from '@/components/shared/ShareDrawer.vue'
+import ReadingToolbar from '@/components/shared/ReadingToolbar.vue'
 
 dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')
@@ -88,9 +91,9 @@ const sanitizedContent = (html) => {
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 's', 'a',
                     'ul', 'ol', 'li', 'blockquote', 'code', 'pre',
-                    'img', 'iframe', 'video', 'div', 'span'],
+                    'img', 'iframe', 'video', 'source', 'div', 'span'],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'width', 'height', 'class', 'style',
-                    'frameborder', 'allowfullscreen', 'allow', 'target'],
+                    'frameborder', 'allowfullscreen', 'allow', 'target', 'controls', 'autoplay', 'loop', 'muted', 'playsinline', 'poster', 'type'],
     ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
   })
 }
@@ -241,6 +244,11 @@ onMounted(() => {
   font-size: 17px;
   line-height: 1.8;
   color: #333;
+  padding: 32px;
+  background: #fff;
+  border: 1px solid #e1e4e8;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 
   :deep(h1) { font-size: 28px; font-weight: 700; margin: 40px 0 20px; color: #1a1a1a; }
   :deep(h2) { font-size: 24px; font-weight: 600; margin: 36px 0 16px; color: #1a1a1a; }

@@ -151,3 +151,23 @@ class TagCreateSchema(BaseModel):
     """创建标签"""
     name: str = Field(..., min_length=1, max_length=50)
     slug: Optional[str] = Field(None, max_length=50)
+
+
+# ========== 简化文章Schema（用于搜索结果）==========
+class ArticleSimpleSchema(BaseModel):
+    """简化文章Schema（用于搜索建议、相关推荐）"""
+    id: int
+    title: str
+    slug: str
+    summary: Optional[str] = None
+    cover_image: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ========== 相关推荐响应Schema ==========
+class RelatedArticlesResponse(BaseModel):
+    """相关推荐响应"""
+    by_tag: List[ArticleListSchema]
+    by_category: List[ArticleListSchema]

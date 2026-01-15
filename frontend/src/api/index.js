@@ -58,6 +58,14 @@ export const articleApi = {
   // 删除文章
   delete(id) {
     return api.delete(`/articles/${id}`)
+  },
+  // 即时搜索文章
+  instantSearch(query, limit = 5) {
+    return api.get('/search/articles', { params: { q: query, limit } })
+  },
+  // 获取相关推荐文章
+  getRelated(articleId) {
+    return api.get(`/articles/${articleId}/related`)
   }
 }
 
