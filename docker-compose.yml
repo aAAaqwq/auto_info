@@ -1,5 +1,4 @@
 # Docker Compose 配置 - AI智能资讯聚合系统
-# 老王出品，生产环境使用镜像部署
 
 services:
   # 后端服务
@@ -10,17 +9,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # 持久化数据库文件
       - backend-data:/app/data
     environment:
       - TZ=Asia/Shanghai
-    # 简化健康检查，只检查端口是否监听
-    healthcheck:
-      test: ["CMD", "sh", "-c", "nc -z localhost 8000 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     networks:
       - auto-info-net
 
@@ -32,8 +23,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     networks:
       - auto-info-net
 
