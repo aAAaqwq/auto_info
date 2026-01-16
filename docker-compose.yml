@@ -1,14 +1,10 @@
 # Docker Compose 配置 - AI智能资讯聚合系统
-# 老王出品，一键启动前后端
-
-version: '3.8'
+# 老王出品，生产环境使用镜像部署
 
 services:
   # 后端服务
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME}/auto-info-backend:latest
     container_name: auto-info-backend
     restart: unless-stopped
     ports:
@@ -16,8 +12,6 @@ services:
     volumes:
       # 持久化数据库文件
       - backend-data:/app/data
-      # 开发时可以挂载代码目录（注释掉）
-      # - ./backend/app:/app/app
     environment:
       - TZ=Asia/Shanghai
     healthcheck:
@@ -31,9 +25,7 @@ services:
 
   # 前端服务
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME}/auto-info-frontend:latest
     container_name: auto-info-frontend
     restart: unless-stopped
     ports:
