@@ -97,6 +97,8 @@ jobs:
           script_stop: true
           script: |
             cd ~/workspace/auto_info
+            # 更新代码
+            git pull
             # 设置 .env 文件
             echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
             # 拉取镜像并重启
