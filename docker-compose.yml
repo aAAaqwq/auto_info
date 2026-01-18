@@ -12,6 +12,7 @@ services:
       - backend-data:/app/data
     environment:
       - TZ=Asia/Shanghai
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/auto_info.db
     networks:
       - auto-info-net
 
