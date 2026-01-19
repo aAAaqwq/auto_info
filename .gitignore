@@ -77,6 +77,12 @@ backend/auto_info.db
 backend/*.db
 backend/.pytest_cache/
 
+# ========== SSL 证书/私钥 (安全风险！) ==========
+certificates/
+*.crt
+*.key
+*.pem
+
 # ========== 临时文件 ==========
 *.tmp
 *.temp
