@@ -15,7 +15,9 @@ export const useAppStore = defineStore('app', {
     // 侧边栏状态
     sidebarOpen: false,
     // 搜索关键词
-    searchKeyword: ''
+    searchKeyword: '',
+    // 主题模式：dark/light
+    isDark: true
   }),
 
   getters: {
@@ -75,6 +77,38 @@ export const useAppStore = defineStore('app', {
     // 设置搜索关键词
     setSearchKeyword(keyword) {
       this.searchKeyword = keyword
+    },
+
+    // 初始化主题（从localStorage读取）
+    initTheme() {
+      const savedTheme = localStorage.getItem('theme')
+      if (savedTheme) {
+        this.isDark = savedTheme === 'dark'
+      } else {
+        this.isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      }
+      this.applyTheme()
+    },
+
+    // 切换主题
+    toggleTheme() {
+      this.isDark = !this.isDark
+      this.applyTheme()
+      localStorage.setItem('theme', this.isDark ? 'dark' : 'light')
+    },
+
+    // 应用主题到DOM
+    applyTheme() {
+      const root = document.documentElement
+      if (this.isDark) {
+        root.setAttribute('data-theme', 'dark')
+        document.body.classList.remove('light-mode')
+        document.body.classList.add('dark-mode')
+      } else {
+        root.setAttribute('data-theme', 'light')
+        document.body.classList.remove('dark-mode')
+        document.body.classList.add('light-mode')
+      }
     }
   }
 })

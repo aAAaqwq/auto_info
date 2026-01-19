@@ -27,9 +27,12 @@
       </nav>
 
       <div class="header-actions">
+        <button class="theme-toggle-btn" @click="toggleTheme" title="切换主题">
+          <span class="theme-icon">{{ isDark ? '☀️' : '🌙' }}</span>
+        </button>
         <InstantSearch />
         <button class="menu-btn mobile-only" @click="toggleSidebar">
-          <span class="hamburger"></span>
+          <span class="hamburger"><span class="line"></span></span>
         </button>
       </div>
     </div>
@@ -42,10 +45,14 @@ import { storeToRefs } from 'pinia'
 import InstantSearch from '@/components/shared/InstantSearch.vue'
 
 const appStore = useAppStore()
-const { categories } = storeToRefs(appStore)
+const { categories, isDark } = storeToRefs(appStore)
 
 const toggleSidebar = () => {
   appStore.toggleSidebar()
+}
+
+const toggleTheme = () => {
+  appStore.toggleTheme()
 }
 </script>
 
@@ -171,6 +178,25 @@ const toggleSidebar = () => {
   align-items: center;
 }
 
+.theme-toggle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+
+  &:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-secondary);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+  }
+}
+
 .menu-btn {
   width: 44px;
   height: 44px;
@@ -190,15 +216,18 @@ const toggleSidebar = () => {
   }
 }
 
+.theme-icon {
+  font-size: 18px;
+}
+
+
 .hamburger {
   display: flex;
   flex-direction: column;
   gap: 5px;
   width: 20px;
 
-  &::before,
-  &::after {
-    content: '';
+  .line {
     width: 100%;
     height: 2px;
     background: var(--text-primary);
@@ -206,6 +235,7 @@ const toggleSidebar = () => {
     transition: all 0.3s;
   }
 }
+
 
 .mobile-only {
   display: none;

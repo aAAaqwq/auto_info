@@ -51,7 +51,7 @@
       </header>
 
       <!-- 文章内容 -->
-      <div class="article-content" v-html="article.content"></div>
+      <div class="article-content" :class='["size-" + fontSize, { dark: isDark }]' v-html="article.content"></div>
 
       <!-- 操作按钮 -->
       <div class="article-actions">
@@ -99,7 +99,12 @@
     />
 
     <!-- 阅读工具栏 -->
-    <ReadingToolbar />
+    <ReadingToolbar
+      :fontSize="fontSize"
+      :darkMode="isDark"
+      @changeFontSize="changeFontSize"
+      @toggleDarkMode="toggleDarkMode"
+    />
   </div>
 </template>
 
@@ -126,6 +131,10 @@ const article = ref(null)
 const loading = ref(true)
 const showShareDrawer = ref(false)
 const deleting = ref(false)
+
+// 阅读设置
+const fontSize = ref("medium")
+const isDark = ref(false)
 
 // 分享链接
 const shareUrl = computed(() => {
@@ -188,6 +197,16 @@ const deleteArticle = async () => {
 
 const shareArticle = () => {
   showShareDrawer.value = true
+}
+
+// 切换字号
+const changeFontSize = (size) => {
+  fontSize.value = size
+}
+
+// 切换暗黑模式
+const toggleDarkMode = () => {
+  isDark.value = !isDark.value
 }
 
 onMounted(() => {
@@ -324,6 +343,26 @@ onMounted(() => {
   margin-right: 2px;
 }
 
+// 字号样式
+.article-content.size-small {
+  font-size: 15px;
+}
+
+.article-content.size-medium {
+  font-size: 17px;
+}
+
+.article-content.size-large {
+  font-size: 20px;
+}
+
+// 暗黑阅读模式
+.article-content.dark {
+  background: #0a0a0a;
+  border-color: #222;
+  color: #d4d4d4;
+}
+
 .article-content {
   max-width: 800px;
   margin: 0 auto;
@@ -336,6 +375,7 @@ onMounted(() => {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   position: relative;
+  transition: all 0.3s ease;
 
   &::before {
     content: '';
