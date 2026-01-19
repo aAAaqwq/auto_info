@@ -23,6 +23,9 @@ services:
     restart: unless-stopped
     ports:
       - "5668:80"
+      - "5669:443"
+    volumes:
+      - ./certificates:/etc/nginx/ssl:ro
     depends_on:
       - backend
     networks:

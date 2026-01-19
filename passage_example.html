@@ -1,52 +1,67 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <title>打工人的宇宙极限拉扯</title>
-</head>
-
-<body>
-  <div class="container">
-    <h1>This is an H1 heading</h1>
-    <h2>This is an H2 heading</h2>
-    <p>This is 图片</p>
-    <img src="https://res.cloudinary.com/dwdm5ycec/image/upload/v1768469935/auto_info/pauo2bexxwuntojwpsvz.jpg"
-      alt="配图" />
-    <p>This is 视频 </p>
-    <video width="100%" controls>
-      <source src="https://res.cloudinary.com/dwdm5ycec/video/upload/v1768469604/prv0c3nnwbtqosj9tu5h.mp4"
-        type="video/mp4">
-    </video>
-  </div>
-</body>
-
-</html>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[文章标题]</title>
 <style>
-  .container {
-    background-color: #ffffff;
-    text-align: center;
-    padding: 16px;
-    border-radius: 8px;
-  }
-
-  h1 {
-    color: #ff6d5a;
-    font-size: 24px;
-    font-weight: bold;
-    padding: 8px;
-  }
-
-  h2 {
-    color: #909399;
-    font-size: 18px;
-    font-weight: bold;
-    padding: 8px;
-  }
+    body { margin: 0; padding: 0; background: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .article-container { max-width: 680px; margin: 40px auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); color: #333; line-height: 1.8; }
+    h1 { font-size: 28px; font-weight: 800; color: #000; margin-bottom: 20px; line-height: 1.3; letter-spacing: -0.5px; }
+    h2 { font-size: 22px; font-weight: 700; color: #111; margin-top: 40px; margin-bottom: 16px; border-left: 4px solid #000; padding-left: 12px; }
+    h3 { font-size: 18px; font-weight: 600; margin-top: 30px; }
+    p { margin-bottom: 16px; font-size: 17px; text-align: justify; }
+    strong { color: #000; font-weight: 700; background: linear-gradient(to top, #ffe600 20%, transparent 20%); }
+    blockquote { border-left: 4px solid #ddd; margin: 20px 0; padding-left: 16px; color: #666; font-style: italic; background: #fafafa; padding: 16px; border-radius: 0 8px 8px 0; }
+    ul { padding-left: 20px; margin-bottom: 20px; }
+    li { margin-bottom: 8px; }
+    figure { margin: 30px -20px; text-align: center; } /* 媒体突破边界一点点 */
+    img, video { max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+    figcaption { margin-top: 10px; font-size: 14px; color: #888; font-style: italic; }
+    @media (max-width: 600px) { .article-container { padding: 20px; margin: 0; border-radius: 0; } }
 </style>
+</head>
+<body>
 
-<script>
-  console.log("Hello World!");
-</script>
+<article class="article-container">
+    <h1>[此处生成基于点击率优化的标题]</h1>
+
+    <p>[开篇直接击中痛点或抛出悬念，禁止废话]</p>
+
+    <figure>
+        <img src="[IMG_URL_1]" alt="[Alt Text]" loading="lazy">
+        <figcaption>[图片说明]</figcaption>
+    </figure>
+
+    <h2>[小标题 1：使用反直觉或强观点]</h2>
+    <p>[正文内容...]</p>
+    <blockquote>[插入一句金句或引用]</blockquote>
+    <p>[正文内容...]</p>
+
+    <figure>
+        <video controls poster="[VIDEO_POSTER_URL]" preload="metadata">
+            <source src="[VIDEO_URL]" type="video/mp4">
+            您的浏览器不支持HTML5视频。
+        </video>
+        <figcaption>🎥 [视频标题/说明]</figcaption>
+    </figure>
+
+    <h2>[小标题 2：干货或具体操作]</h2>
+    <p>[正文内容...]</p>
+    <ul>
+        <li>[列表项 1]</li>
+        <li>[列表项 2]</li>
+        <li>[列表项 3]</li>
+    </ul>
+
+    <figure>
+        <img src="[IMG_URL_2]" alt="[Alt Text]" loading="lazy">
+    </figure>
+
+    <p><strong>[结尾金句，独立成段]</strong></p>
+    <p>[引导互动或关注]</p>
+
+</article>
+
+</body>
+</html>
